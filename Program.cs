@@ -5,6 +5,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using prancing_bot.Commands;
+using prancing_bot.IO;
 using System;
 using System.Threading.Tasks;
 
@@ -19,6 +20,8 @@ namespace prancing_bot
 
         internal static async Task MainAsync()
         {
+            FileReader.CreateFilesIfNotExist();
+
             var discord = new DiscordClient(new DiscordConfiguration()
             {
                 Token = Environment.GetEnvironmentVariable("DISCORD_KEY_PRANCING_BOT"),
@@ -34,8 +37,6 @@ namespace prancing_bot
             });
             commands.RegisterCommands<GeneralModule>();
 
-            commands.SetHelpFormatter<Help>();
-
             discord.UseInteractivity(new InteractivityConfiguration()
             {
                 PollBehaviour = DSharpPlus.Interactivity.Enums.PollBehaviour.KeepEmojis,
@@ -47,7 +48,7 @@ namespace prancing_bot
             };
 
             var slash = discord.UseSlashCommands();
-            slash.RegisterCommands<SlashCommands>();
+            slash.RegisterCommands<SlashCommands>(857590674811912222);
 
             await discord.ConnectAsync();
             await Task.Delay(-1);
