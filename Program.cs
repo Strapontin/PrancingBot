@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using prancing_bot.Classes;
 using prancing_bot.Commands;
 using prancing_bot.IO;
 using System;
@@ -51,6 +52,14 @@ namespace prancing_bot
             slash.RegisterCommands<SlashCommands>(857590674811912222);
 
             await discord.ConnectAsync();
+
+            // If the bot shut downed and restarted, it needs the timers back
+            discord.GuildAvailable += (s, e) =>
+            {
+                TimerMessageCommand.RestartTimers(discord);
+                return Task.CompletedTask;
+            };
+
             await Task.Delay(-1);
         }
     }

@@ -24,16 +24,23 @@ namespace prancing_bot.IO
 
         public static void AddTimer(TimerMessage timerMessage)
         {
+            var data = ReadAllTimers();
+            data.Add(timerMessage);
+
+            File.WriteAllLines(FilePaths.TimerMessagePath, data.Select(d => $"{d.Id};{d.DiscordChannelId};{d.Day};{d.Hour};{d.Message}"));
+        }
+
+        public static List<TimerMessage> ReadAllTimers()
+        {
             List<TimerMessage> data;
 
             using (var reader = new StreamReader(FilePaths.TimerMessagePath))
             using (var csv = new CsvReader(reader, FilePaths.csvConfiguration))
             {
                 data = csv.GetRecords<TimerMessage>().ToList();
-                data.Add(timerMessage);
             }
 
-            File.WriteAllLines(FilePaths.TimerMessagePath, data.Select(d => $"{d.Id};{d.DiscordChannelId};{d.Day};{d.Hour};{d.Message}"));
+            return data;
         }
     }
 }

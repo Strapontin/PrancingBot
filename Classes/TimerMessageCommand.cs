@@ -14,6 +14,7 @@ namespace prancing_bot.Classes
     public static class TimerMessageCommand
     {
         private static List<TimerMessage> _timers = new();
+        // TODO : Ajouter un moyen d'avoir le context ?
 
         /// <summary>
         /// Set a new timer for a message to post
@@ -29,6 +30,7 @@ namespace prancing_bot.Classes
             TimeSpan now = TimeSpan.Parse(DateTime.Now.ToString("HH:mm"));     // The current time in 24 hour format
             TimeSpan target = new(hour + (24 * dud), 0, 0);
             TimeSpan timeLeftUntilHour = target - now;
+            timeLeftUntilHour = new(0, 0, 5);
 
             // Timer creation
             if (id == null)
@@ -53,11 +55,43 @@ namespace prancing_bot.Classes
             else
             {
                 var timer = _timers.First(t => t.Id == id);
-                timer.Timer.Interval = timeLeftUntilHour.TotalMilliseconds;
+
+                if (timer.Timer != null)
+                {
+                    timer.Timer.Dispose();
+                    timer.Timer = null;
+                }
+
+                timer.Timer = new()
+                {
+                    Interval = timeLeftUntilHour.TotalMilliseconds
+                };
             }
 
-            _timers.First(t => t.Id == id).Timer.Elapsed += (sender, e) => SendMessage(sender, e, discordChannel, day, hour, message, id.Value);
+            _timers.First(t => t.Id == id).Timer.Elapsed += (sender, e) => SendMessage(sender, e, discordChannel, day, hour, message, id.Value, TimeSpan.Parse(DateTime.Now.ToString("HH:mm:ss")));
             _timers.First(t => t.Id == id).Timer.Start();
+        }
+
+        /// <summary>
+        /// Restarts all the timers previously recorded at the beginning of the application
+        /// </summary>
+        /// <param name="discord"></param>
+        public static void RestartTimers(DiscordClient discord)
+        {
+            _timers.Clear();
+            _timers = FileReader.ReadAllTimers();
+
+            foreach (var timer in _timers)
+            {
+                var discordChannelId = discord.Guilds.Values.SelectMany(g => g.Channels).FirstOrDefault(c => c.Key == timer.DiscordChannelId).Value;
+
+                if (discordChannelId == null)
+                {
+                    continue;
+                }
+
+                SetTimerMessage(discordChannelId, timer.Day, timer.Hour, timer.Message, timer.Id);
+            }
         }
 
         /// <summary>
@@ -81,12 +115,12 @@ namespace prancing_bot.Classes
         /// <param name="e"></param>
         /// <param name="discordChannel"></param>
         /// <param name="message"></param>
-        private async static void SendMessage(object sender, ElapsedEventArgs e, ulong discordChannelId, int day, int hour, string message, uint id)
+        private async static void SendMessage(object sender, ElapsedEventArgs e, DiscordChannel discordChannel, int day, int hour, string message, uint id, TimeSpan val)
         {
-            DiscordChannel discordChannel = ;
+            _timers.Find(t => t.Id == id).Timer.Stop();
 
             // Sends the message
-            await discordChannel.SendMessageAsync(message);
+            await discordChannel.SendMessageAsync(message + " " + val);
 
             // Refresh the timer interval
             SetTimerMessage(discordChannel, day, hour, message, id);
