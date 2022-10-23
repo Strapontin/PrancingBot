@@ -67,7 +67,7 @@ namespace prancing_bot.Classes
                 };
             }
 
-            _timers.First(t => t.Id == id).Timer.Elapsed += (sender, e) => SendMessage(sender, e, discordChannel, day, hour, message, id.Value, TimeSpan.Parse(DateTime.Now.ToString("HH:mm:ss")));
+            _timers.First(t => t.Id == id).Timer.Elapsed += (sender, e) => SendMessage(sender, e, discordChannel, day, hour, message, id.Value);
             _timers.First(t => t.Id == id).Timer.Start();
         }
 
@@ -137,12 +137,12 @@ namespace prancing_bot.Classes
         /// <param name="e"></param>
         /// <param name="discordChannel"></param>
         /// <param name="message"></param>
-        private async static void SendMessage(object sender, ElapsedEventArgs e, DiscordChannel discordChannel, int day, int hour, string message, uint id, TimeSpan val)
+        private async static void SendMessage(object sender, ElapsedEventArgs e, DiscordChannel discordChannel, int day, int hour, string message, uint id)
         {
             _timers.Find(t => t.Id == id).Timer.Stop();
 
             // Sends the message
-            await discordChannel.SendMessageAsync(message + " " + val);
+            await discordChannel.SendMessageAsync(message);
 
             // Refresh the timer interval
             SetTimerMessage(discordChannel, day, hour, message, id);
