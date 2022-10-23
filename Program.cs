@@ -49,7 +49,7 @@ namespace prancing_bot
             };
 
             var slash = discord.UseSlashCommands();
-            slash.RegisterCommands<SlashCommands>(857590674811912222);
+            slash.RegisterCommands<SlashCommands>();
 
             await discord.ConnectAsync();
 

@@ -30,7 +30,6 @@ namespace prancing_bot.Classes
             TimeSpan now = TimeSpan.Parse(DateTime.Now.ToString("HH:mm"));     // The current time in 24 hour format
             TimeSpan target = new(hour + (24 * dud), 0, 0);
             TimeSpan timeLeftUntilHour = target - now;
-            timeLeftUntilHour = new(0, 0, 5);
 
             // Timer creation
             if (id == null)
@@ -106,6 +105,29 @@ namespace prancing_bot.Classes
                 id = _timers.Max(t => t.Id) + 1;
 
             return id;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static bool TryCancelTimerFromId(uint id)
+        {
+            var timer = _timers.Find(t => t.Id == id);
+
+            if (timer == null)
+            {
+                return false;
+            }
+
+            timer.Timer.Dispose();
+            timer.Timer.Close();
+            _timers.Remove(timer);
+
+            FileReader.RemoveLineFromId(id);
+
+            return true;
         }
 
         /// <summary>

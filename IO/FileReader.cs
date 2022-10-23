@@ -42,5 +42,19 @@ namespace prancing_bot.IO
 
             return data;
         }
+
+        public static FileStream GetTimerFile()
+        {
+            FileStream fsSource = new(FilePaths.TimerMessagePath, FileMode.Open, FileAccess.Read);
+            return fsSource;
+        }
+
+        public static void RemoveLineFromId(uint id)
+        {
+            var data = ReadAllTimers();
+            data.RemoveAll(d => d.Id == id);
+
+            File.WriteAllLines(FilePaths.TimerMessagePath, data.Select(d => $"{d.Id};{d.DiscordChannelId};{d.Day};{d.Hour};{d.Message}"));
+        }
     }
 }

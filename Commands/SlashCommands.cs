@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using prancing_bot.Classes;
+using prancing_bot.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,14 @@ namespace prancing_bot.Commands
             [Option("Hour", "Heure à laquel le message doit être envoyé")] long hour,
             [Option("Message", "Message à envoyer")] string message)
         {
+            if (hour < 0 || hour > 23)
+            {
+                var contentError = new DiscordInteractionResponseBuilder().WithContent("L'heure doit être compris entre 0 et 23");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, contentError);
+                return;
+            }
+
             TimerMessageCommand.SetTimerMessage(discordChannel, (int)day, (int)hour, message);
 
             var content = new DiscordInteractionResponseBuilder()
@@ -47,7 +56,30 @@ namespace prancing_bot.Commands
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, content);
         }
 
-        // TODO command pour voir les timers
-        // TODO command pour annuler les timers
+        [SlashCommand("see-recurring-messages", "Récupère un fichier .csv qui contient tous les détails des messages paramétrés")]
+        public async Task SeeRecurringMessagesCommand(InteractionContext ctx)
+        {
+            var file = FileReader.GetTimerFile();
+
+            var content = new DiscordInteractionResponseBuilder()
+                .AddFile(file);
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, content);
+
+            file.Dispose();
+            file.Close();
+        }
+
+        [SlashCommand("cancel-recurring-messages", "Annule la publication de message automatique dans un salon")]
+        public async Task CancelRecurringMessageCommand(InteractionContext ctx,
+            [Option("Id", "Id de l'objet à annuler")] long id)
+        {
+            bool success = TimerMessageCommand.TryCancelTimerFromId((uint)id);
+
+            string contentString = success ? $"Le timer avec l'id {id} bien été annulé" : $"Le timer avec l'id {id} n'a pas été trouvé";
+            var content = new DiscordInteractionResponseBuilder().WithContent(contentString);
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, content);
+        }
     }
 }
