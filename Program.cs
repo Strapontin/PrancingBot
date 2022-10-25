@@ -25,7 +25,11 @@ namespace prancing_bot
 
             var discord = new DiscordClient(new DiscordConfiguration()
             {
+#if DEBUG
+                Token = Environment.GetEnvironmentVariable("DISCORD_KEY_DEBUG"),
+#else
                 Token = Environment.GetEnvironmentVariable("DISCORD_KEY_PRANCING_BOT"),
+#endif
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.AllUnprivileged,
                 MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Trace,
@@ -36,7 +40,6 @@ namespace prancing_bot
             {
                 StringPrefixes = new[] { "!" }
             });
-            commands.RegisterCommands<GeneralModule>();
 
             discord.UseInteractivity(new InteractivityConfiguration()
             {

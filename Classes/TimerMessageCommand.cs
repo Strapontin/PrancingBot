@@ -14,7 +14,6 @@ namespace prancing_bot.Classes
     public static class TimerMessageCommand
     {
         private static List<TimerMessage> _timers = new();
-        // TODO : Ajouter un moyen d'avoir le context ?
 
         /// <summary>
         /// Set a new timer for a message to post
@@ -142,7 +141,7 @@ namespace prancing_bot.Classes
             _timers.Find(t => t.Id == id).Timer.Stop();
 
             // Sends the message
-            await discordChannel.SendMessageAsync(message);
+            await discordChannel.SendMessageAsync(message.Replace("\\n", "\n"));
 
             // Refresh the timer interval
             SetTimerMessage(discordChannel, day, hour, message, id);

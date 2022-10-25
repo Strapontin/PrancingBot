@@ -71,42 +71,40 @@ namespace prancing_bot
         /// <returns></returns>
         private static async Task HandleAddRole(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
-            var buttonId = int.Parse(componentInteractionCreateEventArgs.Id.Split('_')[1]);
+            DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder()
+                .AsEphemeral();
 
-            // Revokes all potential affected roles before affecting the necessary ones
+            await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource, builder);
+
+            var buttonId = int.Parse(componentInteractionCreateEventArgs.Id.Split('_')[1]);
             var allRolesId = componentInteractionCreateEventArgs.Message.Components
                 .SelectMany(c => c.Components)
                 .Select(c => new { buttonId = int.Parse(c.CustomId.Split('_')[1]), roleId = c.CustomId.Split('_')[2] });
 
+            // Revokes all potential affected roles before affecting the necessary ones
             var rolesToRevoke = componentInteractionCreateEventArgs.Guild.Roles
                 .Where(r => allRolesId
                     .Any(ri => ri.roleId == r.Key.ToString())
-                );
-
-            foreach (var role in rolesToRevoke)
-            {
-                await ((DiscordMember)componentInteractionCreateEventArgs.User).RevokeRoleAsync(role.Value);
-            }
+                ).Select(role => role.Value).ToList();
 
             // Grants all roles requested
-            var rolesIdToGrant = allRolesId
-                .Where(c => c.buttonId <= buttonId).ToList();
-
+            var rolesIdToGrant = allRolesId.Where(c => c.buttonId <= buttonId);
             var rolesToGrant = rolesToRevoke
                 .Where(r => rolesIdToGrant
-                    .Any(ri => ri.roleId == r.Key.ToString())
-                );
+                    .Any(ri => ri.roleId == r.Id.ToString())
+                ).ToList();
 
-            foreach (var role in rolesToGrant)
-            {
-                await ((DiscordMember)componentInteractionCreateEventArgs.User).GrantRoleAsync(role.Value);
-            }
+            var discordMember = ((DiscordMember)componentInteractionCreateEventArgs.User);
 
-            var builder = new DiscordInteractionResponseBuilder()
-                .WithContent("Assignation des rôles terminée.")
-                .AsEphemeral();
+            var userRoles = discordMember.Roles.ToList();
+            userRoles.RemoveAll(rtg => rolesToRevoke.Any(rtr => rtr.Id == rtg.Id));
+            userRoles.AddRange(rolesToGrant);
 
-            await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, builder);
+            var builderResponse = new DiscordWebhookBuilder()
+                .WithContent("Assignation des rôles terminée.");
+
+            await discordMember.ReplaceRolesAsync(userRoles);
+            await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(builderResponse);
         }
     }
 }
