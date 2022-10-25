@@ -20,4 +20,10 @@
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="boot.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

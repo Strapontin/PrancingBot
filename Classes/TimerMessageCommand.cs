@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -29,6 +30,10 @@ namespace prancing_bot.Classes
             TimeSpan now = TimeSpan.Parse(DateTime.Now.ToString("HH:mm"));     // The current time in 24 hour format
             TimeSpan target = new(hour + (24 * dud), 0, 0);
             TimeSpan timeLeftUntilHour = target - now;
+
+#if DEBUG
+            timeLeftUntilHour = new(0, 0, 5);
+#endif
 
             // Timer creation
             if (id == null)
@@ -140,8 +145,16 @@ namespace prancing_bot.Classes
         {
             _timers.Find(t => t.Id == id).Timer.Stop();
 
+            Regex regex = new(@"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])");
+            var emojis = regex.Matches(message);
+
             // Sends the message
-            await discordChannel.SendMessageAsync(message.Replace("\\n", "\n"));
+            var discordMessage = await discordChannel.SendMessageAsync(message.Replace("\\n", "\n"));
+
+            foreach (var emoji in emojis)
+            {
+                await discordMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(emoji.ToString()));
+            }
 
             // Refresh the timer interval
             SetTimerMessage(discordChannel, day, hour, message, id);
