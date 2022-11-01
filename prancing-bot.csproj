@@ -18,10 +18,14 @@
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0" />
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.2.0" />
+    <PackageReference Include="NLog" Version="5.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="boot.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

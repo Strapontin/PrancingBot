@@ -8,6 +8,7 @@ using prancing_bot.Classes;
 using prancing_bot.Commands;
 using prancing_bot.IO;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace prancing_bot
@@ -21,6 +22,8 @@ namespace prancing_bot
 
         internal static async Task MainAsync()
         {
+            Logger.LogInfo("App Started");
+
             FileReader.CreateFilesIfNotExist();
 
             var discord = new DiscordClient(new DiscordConfiguration()

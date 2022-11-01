@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
+using prancing_bot.Classes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace prancing_bot
     {
         public static async Task HandleInteraction(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
+            Logger.LogInfo($"{nameof(HandleInteraction)} : Start");
+
             switch (componentInteractionCreateEventArgs.Id.Remove(componentInteractionCreateEventArgs.Id.IndexOf('_')))
             {
                 case "CRM":
@@ -23,6 +26,8 @@ namespace prancing_bot
                     await HandleAddRole(componentInteractionCreateEventArgs);
                     break;
             }
+         
+            Logger.LogInfo($"{nameof(HandleInteraction)} : Start");
         }
 
         /// <summary>
@@ -32,6 +37,8 @@ namespace prancing_bot
         /// <returns></returns>
         private static async Task HandleCreateRolesMessage(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
+            Logger.LogInfo($"{nameof(HandleCreateRolesMessage)} : Start");
+
             if (componentInteractionCreateEventArgs.Id != "CRM_id") return;
 
             var builder = new DiscordInteractionResponseBuilder()
@@ -62,6 +69,7 @@ namespace prancing_bot
             }
 
             await componentInteractionCreateEventArgs.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, builder);
+            Logger.LogInfo($"{nameof(HandleCreateRolesMessage)} : End");
         }
 
         /// <summary>
@@ -71,6 +79,8 @@ namespace prancing_bot
         /// <returns></returns>
         private static async Task HandleAddRole(ComponentInteractionCreateEventArgs componentInteractionCreateEventArgs)
         {
+            Logger.LogInfo($"{nameof(HandleAddRole)} : Start");
+
             DiscordInteractionResponseBuilder builder = new DiscordInteractionResponseBuilder()
                 .AsEphemeral();
 
@@ -105,6 +115,8 @@ namespace prancing_bot
 
             await discordMember.ReplaceRolesAsync(userRoles);
             await componentInteractionCreateEventArgs.Interaction.EditOriginalResponseAsync(builderResponse);
+
+            Logger.LogInfo($"{nameof(HandleAddRole)} : End");
         }
     }
 }
