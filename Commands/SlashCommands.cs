@@ -59,9 +59,18 @@ namespace prancing_bot.Commands
             TimerMessageCommand.SetTimerMessage(discordChannel, (int)day, (int)hour, message);
 
             var content = new DiscordInteractionResponseBuilder()
-                .WithContent($"Message reçu ! Il sera envoyé le {DaysOfWeekChoiceProvider.IntToStringDay(day)} à {hour}h, dans le salon '{discordChannel.Name}'.");
+                .WithContent($"Message reçu ! Il sera envoyé le {DaysOfWeekChoiceProvider.IntToStringDay(day)} à {hour}h, dans le salon '{discordChannel.Name}'.\n" +
+                             $"Voici ce à quoi il ressemble :")
+                .AsEphemeral();
 
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, content);
+
+            var messageExample = new DiscordFollowupMessageBuilder()
+                .WithContent(message.Replace("\\n", "\n"))
+                .AsEphemeral();
+
+            await ctx.FollowUpAsync(messageExample);
+
             Logger.LogInfo($"{nameof(MakeRecurringMessageCommand)} : End");
         }
 
