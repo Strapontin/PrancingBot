@@ -90,11 +90,16 @@ namespace prancing_bot.Classes
         /// Restarts all the timers previously recorded at the beginning of the application
         /// </summary>
         /// <param name="discord"></param>
-        public static void RestartTimers(DiscordClient discord)
+        public static void RestartTimersOnAppStarting(DiscordClient discord, bool isFirstExecution)
         {
-            Logger.LogInfo($"{nameof(RestartTimers)} : Start");
+            Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : Start");
 
-            _timers.Clear();
+            if (!isFirstExecution)
+            {
+                Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : The application is already running. Timers not restarted.");
+                return;
+            }
+
             _timers = FileReader.ReadAllTimers();
 
             foreach (var timer in _timers)
@@ -102,14 +107,14 @@ namespace prancing_bot.Classes
                 var discordChannelId = discord.Guilds.Values.SelectMany(g => g.Channels).FirstOrDefault(c => c.Key == timer.DiscordChannelId).Value;
                 if (discordChannelId == null)
                 {
-                    Logger.LogInfo($"{nameof(RestartTimers)} : discordChannelId not found '{timer.DiscordChannelId}' null for timerId {timer.Id}");
+                    Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : discordChannelId not found '{timer.DiscordChannelId}' null for timerId {timer.Id}");
                     continue;
                 }
 
                 SetTimerMessage(discordChannelId, timer.Day, timer.Hour, timer.Message, timer.Id);
             }
 
-            Logger.LogInfo($"{nameof(RestartTimers)} : End");
+            Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : End");
         }
 
         /// <summary>
@@ -171,7 +176,7 @@ namespace prancing_bot.Classes
 
             Regex regex = new(@"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])");
             var emojis = regex.Matches(message);
-            
+
             Logger.LogInfo($"{nameof(SendMessage)} : Counted {emojis.Count} in message '{message}'");
 
             // Sends the message
