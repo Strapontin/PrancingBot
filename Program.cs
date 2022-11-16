@@ -60,13 +60,10 @@ namespace prancing_bot
 
             await discord.ConnectAsync();
 
-            bool isFirstExecution = true;
-
             // If the bot shut downed and restarted, it needs the timers back
             discord.GuildAvailable += (s, e) =>
             {
-                TimerMessageCommand.RestartTimersOnAppStarting(discord, isFirstExecution);
-                isFirstExecution = false;
+                TimerMessageCommand.RestartTimersOnAppStarting(discord);
                 return Task.CompletedTask;
             };
 

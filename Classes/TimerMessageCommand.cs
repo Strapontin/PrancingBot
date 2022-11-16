@@ -15,6 +15,7 @@ namespace prancing_bot.Classes
     public static class TimerMessageCommand
     {
         private static List<TimerMessage> _timers = new();
+        private static DiscordClient _discordClient;
 
         /// <summary>
         /// Set a new timer for a message to post
@@ -90,16 +91,19 @@ namespace prancing_bot.Classes
         /// Restarts all the timers previously recorded at the beginning of the application
         /// </summary>
         /// <param name="discord"></param>
-        public static void RestartTimersOnAppStarting(DiscordClient discord, bool isFirstExecution)
+        public static void RestartTimersOnAppStarting(DiscordClient discord)
         {
             Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : Start");
 
-            if (!isFirstExecution)
-            {
-                Logger.LogInfo($"{nameof(RestartTimersOnAppStarting)} : The application is already running. Timers not restarted.");
-                return;
-            }
+            _discordClient = discord;
 
+            foreach (var timer in _timers)
+            {
+                if (timer.Timer != null)
+                {
+                    timer.Timer.Dispose();
+                }
+            }
             _timers = FileReader.ReadAllTimers();
 
             foreach (var timer in _timers)
@@ -174,7 +178,7 @@ namespace prancing_bot.Classes
 
             _timers.Find(t => t.Id == id).Timer.Stop();
 
-            Regex regex = new(@"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])");
+            Regex regex = new(@"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])|<(?<EmojiFullName>:\w+:)(?<EmojiId>\d+)>");
             var emojis = regex.Matches(message);
 
             Logger.LogInfo($"{nameof(SendMessage)} : Counted {emojis.Count} in message '{message}'");
@@ -182,13 +186,29 @@ namespace prancing_bot.Classes
             // Sends the message
             var discordMessage = await discordChannel.SendMessageAsync(message.Replace("\\n", "\n"));
 
-            foreach (var emoji in emojis)
+            foreach (Match emoji in emojis)
             {
                 if (DiscordEmoji.IsValidUnicode(emoji.ToString()))
                 {
                     Logger.LogInfo($"{nameof(SendMessage)} : emoji {emoji} has a valid unicode");
 
                     await discordMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(emoji.ToString()));
+                }
+                else if (emoji.Groups["EmojiId"] != null)
+                {
+                    Logger.LogInfo($"{nameof(SendMessage)} : emoji {emoji} has an id");
+
+                    if (ulong.TryParse(emoji.Groups["EmojiId"].ToString(), out ulong emojiId) &&
+                        DiscordEmoji.TryFromGuildEmote(_discordClient, emojiId, out DiscordEmoji serverEmoji))
+                    {
+                        Logger.LogInfo($"{nameof(SendMessage)} : emoji {emoji} found from its id");
+
+                        await discordMessage.CreateReactionAsync(serverEmoji);
+                    }
+                    else
+                    {
+                        Logger.LogInfo($"{nameof(SendMessage)} : emoji {emoji} NOT found from its id");
+                    }
                 }
                 else
                 {
