@@ -69,7 +69,7 @@ namespace prancing_bot
 
             discord.MessageCreated += (s, e) => 
             {
-                
+                MessageFormatter.FormatAndSendMessageForMakeRecursingMessage(s, e);
                 return Task.CompletedTask;
             };
 
