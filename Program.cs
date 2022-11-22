@@ -67,6 +67,12 @@ namespace prancing_bot
                 return Task.CompletedTask;
             };
 
+            discord.MessageCreated += (s, e) => 
+            {
+                
+                return Task.CompletedTask;
+            };
+
             await Task.Delay(-1);
         }
     }
